@@ -1,0 +1,131 @@
+<?xml version="1.0"?>
+<robot name="two_axis_arm" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- ========================= -->
+  <!-- Properties -->
+  <!-- ========================= -->
+  <xacro:property name="base_radius" value="0.15"/>
+  <xacro:property name="base_height" value="0.08"/>
+
+  <xacro:property name="link1_length" value="0.6"/>
+  <xacro:property name="link2_length" value="0.45"/>
+  <xacro:property name="link_width" value="0.08"/>
+  <xacro:property name="link_height" value="0.06"/>
+
+  <!-- ========================= -->
+  <!-- Materials -->
+  <!-- ========================= -->
+  <material name="gray">
+    <color rgba="0.5 0.5 0.5 1.0"/>
+  </material>
+
+  <material name="blue">
+    <color rgba="0.1 0.3 0.9 1.0"/>
+  </material>
+
+  <material name="green">
+    <color rgba="0.1 0.8 0.3 1.0"/>
+  </material>
+
+  <material name="red">
+    <color rgba="0.9 0.1 0.1 1.0"/>
+  </material>
+
+  <!-- ========================= -->
+  <!-- base_link -->
+  <!-- ========================= -->
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 ${base_height / 2}" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="${base_radius}" length="${base_height}"/>
+      </geometry>
+      <material name="gray"/>
+    </visual>
+  </link>
+
+  <!-- ========================= -->
+  <!-- joint1 -->
+  <!-- ========================= -->
+  <joint name="joint1" type="revolute">
+    <parent link="base_link"/>
+    <child link="link1"/>
+
+    <!-- base_link 기준으로 joint1의 위치 -->
+    <origin xyz="0 0 ${base_height}" rpy="0 0 0"/>
+
+    <!-- z축 기준 회전 -->
+    <axis xyz="0 0 1"/>
+
+    <limit lower="-3.14" upper="3.14" effort="10" velocity="1.0"/>
+  </joint>
+
+  <!-- ========================= -->
+  <!-- link1 -->
+  <!-- ========================= -->
+  <link name="link1">
+    <visual>
+      <!-- link1 좌표계 기준으로 박스 중심을 x축 방향으로 절반 이동 -->
+      <origin xyz="${link1_length / 2} 0 ${link_height / 2}" rpy="0 0 0"/>
+      <geometry>
+        <box size="${link1_length} ${link_width} ${link_height}"/>
+      </geometry>
+      <material name="blue"/>
+    </visual>
+  </link>
+
+  <!-- ========================= -->
+  <!-- joint2 -->
+  <!-- ========================= -->
+  <joint name="joint2" type="revolute">
+    <parent link="link1"/>
+    <child link="link2"/>
+
+    <!-- link1 기준으로 link1 끝에 joint2 배치 -->
+    <origin xyz="${link1_length} 0 0" rpy="0 0 0"/>
+
+    <!-- z축 기준 회전 -->
+    <axis xyz="0 0 1"/>
+
+    <limit lower="-2.5" upper="2.5" effort="10" velocity="1.0"/>
+  </joint>
+
+  <!-- ========================= -->
+  <!-- link2 -->
+  <!-- ========================= -->
+  <link name="link2">
+    <visual>
+      <!-- link2 좌표계 기준으로 박스 중심을 x축 방향으로 절반 이동 -->
+      <origin xyz="${link2_length / 2} 0 ${link_height / 2}" rpy="0 0 0"/>
+      <geometry>
+        <box size="${link2_length} ${link_width} ${link_height}"/>
+      </geometry>
+      <material name="green"/>
+    </visual>
+  </link>
+
+  <!-- ========================= -->
+  <!-- tool_joint -->
+  <!-- ========================= -->
+  <joint name="tool_joint" type="fixed">
+    <parent link="link2"/>
+    <child link="tool_link"/>
+
+    <!-- link2 끝에 tool_link 배치 -->
+    <origin xyz="${link2_length} 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ========================= -->
+  <!-- tool_link -->
+  <!-- ========================= -->
+  <link name="tool_link">
+    <visual>
+      <origin xyz="0 0 ${link_height / 2}" rpy="0 0 0"/>
+      <geometry>
+        <sphere radius="0.04"/>
+      </geometry>
+      <material name="red"/>
+    </visual>
+  </link>
+
+</robot>
