@@ -10,7 +10,6 @@
   <xacro:property name="link1_length" value="0.6"/>
   <xacro:property name="link2_length" value="0.45"/>
   <xacro:property name="link_width" value="0.08"/>
-  <xacro:property name="link_height" value="0.06"/>
 
   <!-- ========================= -->
   <!-- Materials -->
@@ -51,13 +50,13 @@
     <parent link="base_link"/>
     <child link="link1"/>
 
-    <!-- base_link 기준으로 joint1의 위치 -->
+    <!-- base_link 위쪽에 joint1 배치 -->
     <origin xyz="0 0 ${base_height}" rpy="0 0 0"/>
 
-    <!-- z축 기준 회전 -->
-    <axis xyz="0 0 1"/>
+    <!-- y축 기준 회전 -->
+    <axis xyz="0 1 0"/>
 
-    <limit lower="-3.14" upper="3.14" effort="10" velocity="1.0"/>
+    <limit lower="-1.57" upper="1.57" effort="10" velocity="1.0"/>
   </joint>
 
   <!-- ========================= -->
@@ -65,10 +64,10 @@
   <!-- ========================= -->
   <link name="link1">
     <visual>
-      <!-- link1 좌표계 기준으로 박스 중심을 x축 방향으로 절반 이동 -->
-      <origin xyz="${link1_length / 2} 0 ${link_height / 2}" rpy="0 0 0"/>
+      <!-- link1 좌표계 기준으로 z축 방향으로 절반 이동 -->
+      <origin xyz="0 0 ${link1_length / 2}" rpy="0 0 0"/>
       <geometry>
-        <box size="${link1_length} ${link_width} ${link_height}"/>
+        <box size="${link_width} ${link_width} ${link1_length}"/>
       </geometry>
       <material name="blue"/>
     </visual>
@@ -81,13 +80,13 @@
     <parent link="link1"/>
     <child link="link2"/>
 
-    <!-- link1 기준으로 link1 끝에 joint2 배치 -->
-    <origin xyz="${link1_length} 0 0" rpy="0 0 0"/>
+    <!-- link1 위쪽 끝에 joint2 배치 -->
+    <origin xyz="0 0 ${link1_length}" rpy="0 0 0"/>
 
-    <!-- z축 기준 회전 -->
-    <axis xyz="0 0 1"/>
+    <!-- y축 기준 회전 -->
+    <axis xyz="0 1 0"/>
 
-    <limit lower="-2.5" upper="2.5" effort="10" velocity="1.0"/>
+    <limit lower="-2.0" upper="2.0" effort="10" velocity="1.0"/>
   </joint>
 
   <!-- ========================= -->
@@ -95,10 +94,10 @@
   <!-- ========================= -->
   <link name="link2">
     <visual>
-      <!-- link2 좌표계 기준으로 박스 중심을 x축 방향으로 절반 이동 -->
-      <origin xyz="${link2_length / 2} 0 ${link_height / 2}" rpy="0 0 0"/>
+      <!-- link2 좌표계 기준으로 z축 방향으로 절반 이동 -->
+      <origin xyz="0 0 ${link2_length / 2}" rpy="0 0 0"/>
       <geometry>
-        <box size="${link2_length} ${link_width} ${link_height}"/>
+        <box size="${link_width} ${link_width} ${link2_length}"/>
       </geometry>
       <material name="green"/>
     </visual>
@@ -111,8 +110,8 @@
     <parent link="link2"/>
     <child link="tool_link"/>
 
-    <!-- link2 끝에 tool_link 배치 -->
-    <origin xyz="${link2_length} 0 0" rpy="0 0 0"/>
+    <!-- link2 위쪽 끝에 tool_link 배치 -->
+    <origin xyz="0 0 ${link2_length}" rpy="0 0 0"/>
   </joint>
 
   <!-- ========================= -->
@@ -120,7 +119,7 @@
   <!-- ========================= -->
   <link name="tool_link">
     <visual>
-      <origin xyz="0 0 ${link_height / 2}" rpy="0 0 0"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
         <sphere radius="0.04"/>
       </geometry>
