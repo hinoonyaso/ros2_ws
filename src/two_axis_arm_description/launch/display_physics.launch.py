@@ -14,6 +14,12 @@ def generate_launch_description():
         'two_axis_arm_physics.urdf.xacro'
     ])
 
+    rviz_config_file = PathJoinSubstitution([
+        FindPackageShare(package_name),
+        'rviz',
+        'two_axis_arm_physics.rviz'
+    ])
+
     robot_description_content = ParameterValue(
         Command([
             FindExecutable(name='xacro'),
@@ -46,7 +52,8 @@ def generate_launch_description():
         package='rviz2',
         executable='rviz2',
         name='rviz2',
-        output='screen'
+        output='screen',
+        arguments=['-d', rviz_config_file]
     )
 
     return LaunchDescription([
