@@ -1,0 +1,253 @@
+<?xml version="1.0"?>
+<robot name="two_axis_arm_physics" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- ========================= -->
+  <!-- Properties -->
+  <!-- ========================= -->
+  <xacro:property name="base_radius" value="0.15"/>
+  <xacro:property name="base_height" value="0.08"/>
+
+  <xacro:property name="link1_length" value="0.6"/>
+  <xacro:property name="link2_length" value="0.45"/>
+  <xacro:property name="link_width" value="0.08"/>
+
+  <xacro:property name="tool_radius" value="0.04"/>
+
+  <!-- FreeCAD에서 mm 단위로 export한 STL을 m 단위로 줄이기 위한 scale -->
+  <xacro:property name="mesh_scale" value="0.001 0.001 0.001"/>
+
+  <!-- Mass values -->
+  <xacro:property name="base_mass" value="1.0"/>
+  <xacro:property name="link1_mass" value="0.8"/>
+  <xacro:property name="link2_mass" value="0.6"/>
+  <xacro:property name="tool_mass" value="0.2"/>
+
+  <!-- ========================= -->
+  <!-- Inertial Macros -->
+  <!-- ========================= -->
+
+  <!-- Box inertial -->
+  <xacro:macro name="box_inertial" params="mass x y z origin_xyz">
+    <inertial>
+      <origin xyz="${origin_xyz}" rpy="0 0 0"/>
+      <mass value="${mass}"/>
+      <inertia
+        ixx="${(1.0/12.0) * mass * (y*y + z*z)}"
+        ixy="0.0"
+        ixz="0.0"
+        iyy="${(1.0/12.0) * mass * (x*x + z*z)}"
+        iyz="0.0"
+        izz="${(1.0/12.0) * mass * (x*x + y*y)}"/>
+    </inertial>
+  </xacro:macro>
+
+  <!-- Cylinder inertial, cylinder axis = z -->
+  <xacro:macro name="cylinder_inertial" params="mass radius length origin_xyz">
+    <inertial>
+      <origin xyz="${origin_xyz}" rpy="0 0 0"/>
+      <mass value="${mass}"/>
+      <inertia
+        ixx="${(1.0/12.0) * mass * (3*radius*radius + length*length)}"
+        ixy="0.0"
+        ixz="0.0"
+        iyy="${(1.0/12.0) * mass * (3*radius*radius + length*length)}"
+        iyz="0.0"
+        izz="${0.5 * mass * radius * radius}"/>
+    </inertial>
+  </xacro:macro>
+
+  <!-- Sphere inertial -->
+  <xacro:macro name="sphere_inertial" params="mass radius origin_xyz">
+    <inertial>
+      <origin xyz="${origin_xyz}" rpy="0 0 0"/>
+      <mass value="${mass}"/>
+      <inertia
+        ixx="${(2.0/5.0) * mass * radius * radius}"
+        ixy="0.0"
+        ixz="0.0"
+        iyy="${(2.0/5.0) * mass * radius * radius}"
+        iyz="0.0"
+        izz="${(2.0/5.0) * mass * radius * radius}"/>
+    </inertial>
+  </xacro:macro>
+
+  <!-- ========================= -->
+  <!-- Materials -->
+  <!-- ========================= -->
+  <material name="gray">
+    <color rgba="0.5 0.5 0.5 1.0"/>
+  </material>
+
+  <material name="blue">
+    <color rgba="0.1 0.3 0.9 1.0"/>
+  </material>
+
+  <material name="green">
+    <color rgba="0.1 0.8 0.3 1.0"/>
+  </material>
+
+  <material name="red">
+    <color rgba="0.9 0.1 0.1 1.0"/>
+  </material>
+
+  <!-- ========================= -->
+  <!-- base_link -->
+  <!-- ========================= -->
+  <link name="base_link">
+
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://two_axis_arm_description/meshes/base.stl"
+              scale="${mesh_scale}"/>
+      </geometry>
+      <material name="gray"/>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 ${base_height / 2}" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="${base_radius}" length="${base_height}"/>
+      </geometry>
+    </collision>
+
+    <xacro:cylinder_inertial
+      mass="${base_mass}"
+      radius="${base_radius}"
+      length="${base_height}"
+      origin_xyz="0 0 ${base_height / 2}"/>
+
+  </link>
+
+  <!-- ========================= -->
+  <!-- joint1 -->
+  <!-- ========================= -->
+  <joint name="joint1" type="revolute">
+    <parent link="base_link"/>
+    <child link="link1"/>
+
+    <!-- base 위쪽에 joint1 배치 -->
+    <origin xyz="0 0 ${base_height}" rpy="0 0 0"/>
+
+    <!-- 수직형 로봇팔: y축 기준 회전 -->
+    <axis xyz="0 1 0"/>
+
+    <limit lower="-1.57" upper="1.57" effort="10" velocity="1.0"/>
+  </joint>
+
+  <!-- ========================= -->
+  <!-- link1 -->
+  <!-- ========================= -->
+  <link name="link1">
+
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://two_axis_arm_description/meshes/link1.stl"
+              scale="${mesh_scale}"/>
+      </geometry>
+      <material name="blue"/>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 ${link1_length / 2}" rpy="0 0 0"/>
+      <geometry>
+        <box size="${link_width} ${link_width} ${link1_length}"/>
+      </geometry>
+    </collision>
+
+    <xacro:box_inertial
+      mass="${link1_mass}"
+      x="${link_width}"
+      y="${link_width}"
+      z="${link1_length}"
+      origin_xyz="0 0 ${link1_length / 2}"/>
+
+  </link>
+
+  <!-- ========================= -->
+  <!-- joint2 -->
+  <!-- ========================= -->
+  <joint name="joint2" type="revolute">
+    <parent link="link1"/>
+    <child link="link2"/>
+
+    <!-- link1 위쪽 끝에 joint2 배치 -->
+    <origin xyz="0 0 ${link1_length}" rpy="0 0 0"/>
+
+    <!-- 수직형 로봇팔: y축 기준 회전 -->
+    <axis xyz="0 1 0"/>
+
+    <limit lower="-2.0" upper="2.0" effort="10" velocity="1.0"/>
+  </joint>
+
+  <!-- ========================= -->
+  <!-- link2 -->
+  <!-- ========================= -->
+  <link name="link2">
+
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://two_axis_arm_description/meshes/link2.stl"
+              scale="${mesh_scale}"/>
+      </geometry>
+      <material name="green"/>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 ${link2_length / 2}" rpy="0 0 0"/>
+      <geometry>
+        <box size="${link_width} ${link_width} ${link2_length}"/>
+      </geometry>
+    </collision>
+
+    <xacro:box_inertial
+      mass="${link2_mass}"
+      x="${link_width}"
+      y="${link_width}"
+      z="${link2_length}"
+      origin_xyz="0 0 ${link2_length / 2}"/>
+
+  </link>
+
+  <!-- ========================= -->
+  <!-- tool_joint -->
+  <!-- ========================= -->
+  <joint name="tool_joint" type="fixed">
+    <parent link="link2"/>
+    <child link="tool_link"/>
+
+    <!-- link2 위쪽 끝에 tool_link 배치 -->
+    <origin xyz="0 0 ${link2_length}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ========================= -->
+  <!-- tool_link -->
+  <!-- ========================= -->
+  <link name="tool_link">
+
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://two_axis_arm_description/meshes/tool.stl"
+              scale="${mesh_scale}"/>
+      </geometry>
+      <material name="red"/>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <sphere radius="${tool_radius}"/>
+      </geometry>
+    </collision>
+
+    <xacro:sphere_inertial
+      mass="${tool_mass}"
+      radius="${tool_radius}"
+      origin_xyz="0 0 0"/>
+
+  </link>
+
+</robot>
